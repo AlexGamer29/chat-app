@@ -102,7 +102,7 @@ const getAggregate = async (modelDb, aggregateQuery) =>
     await Models[modelDb].aggregate(aggregateQuery);
 
 
-const getPopulatedData = async (modelDb, searchQuery, populateQuery, selectQuery) =>
+const getPopulatedData = async (modelDb, searchQuery) =>
     await Models[modelDb]
         .find(searchQuery)
         .lean();
