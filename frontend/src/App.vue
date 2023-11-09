@@ -1,11 +1,13 @@
 <script setup>
 import SignUp from './views/account/SignUpView.vue'
+import Login from './views/account/LoginView.vue'
 </script>
 
 <template>
   <header>
     <div class="wrapper">
       <SignUp />
+      <Login />
     </div>
   </header>
 </template>
