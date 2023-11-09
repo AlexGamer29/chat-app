@@ -91,7 +91,8 @@ export default defineComponent({
             last_name: this.form.lastName,
             username: this.form.username,
             email: this.form.email,
-            password: this.form.password
+            password: this.form.password,
+            repeat_password: this.form.repeatPassword
           }
 
           axios.post('http://localhost:3000/' + 'api/auth/signup', data).then((res) => {
