@@ -7,6 +7,11 @@
       <el-input type="password" v-model="form.password"></el-input>
     </el-form-item>
     <el-form-item>
+      <el-text>
+        Don't have an account?&nbsp;<RouterLink to="/sign-up">Sign up now</RouterLink>
+      </el-text>
+    </el-form-item>
+    <el-form-item>
       <el-button type="primary" @click="submitForm('form')">Login</el-button>
     </el-form-item>
   </el-form>
@@ -20,7 +25,7 @@
 
 <script>
 import { defineComponent } from 'vue'
-import { ElForm, ElFormItem, ElInput, ElButton } from 'element-plus'
+import { ElForm, ElFormItem, ElInput, ElButton, ElText } from 'element-plus'
 import axios from 'axios'
 
 export default defineComponent({
@@ -29,7 +34,8 @@ export default defineComponent({
     ElForm,
     ElFormItem,
     ElInput,
-    ElButton
+    ElButton,
+    ElText
   },
   data() {
     return {

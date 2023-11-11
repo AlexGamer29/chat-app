@@ -1,14 +1,10 @@
 <script setup>
-import SignUp from './views/account/SignUpView.vue'
-import Login from './views/account/LoginView.vue'
+import { RouterView } from 'vue-router'
 </script>
 
 <template>
   <header>
-    <div class="wrapper">
-      <SignUp />
-      <Login />
-    </div>
+    <div class="wrapper"><RouterView /></div>
   </header>
 </template>
 
