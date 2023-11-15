@@ -8,7 +8,7 @@
     </el-form-item>
     <el-form-item>
       <el-text>
-        Don't have an account?&nbsp;<RouterLink to="/sign-up">Sign up now</RouterLink>
+        Don't have an account?&nbsp;<RouterLink to="sign-up">Sign up now</RouterLink>
       </el-text>
     </el-form-item>
     <el-form-item>
@@ -26,7 +26,8 @@
 <script>
 import { defineComponent } from 'vue'
 import { ElForm, ElFormItem, ElInput, ElButton, ElText } from 'element-plus'
-import axios from 'axios'
+
+import { useAuthStore } from '../../../stores'
 
 export default defineComponent({
   name: 'SignUpForm',
@@ -66,7 +67,7 @@ export default defineComponent({
   },
   methods: {
     submitForm(formName) {
-      this.$refs[formName].validate((valid) => {
+      this.$refs[formName].validate(async (valid) => {
         if (valid) {
           console.log(`Login`, this.form)
           const data = {
@@ -74,9 +75,8 @@ export default defineComponent({
             password: this.form.password
           }
 
-          axios.post('http://localhost:3000/' + 'api/auth/login', data).then((res) => {
-            console.log(`*** RES`, res.data)
-          })
+          const authStore = useAuthStore()
+          await authStore.login(data.email, data.password)
 
           this.$message({
             message: 'Form submitted successfully',

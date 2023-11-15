@@ -1,10 +1,16 @@
 <script setup>
 import { RouterView } from 'vue-router'
+import NavBar from './components/navbar/NavBar.vue'
+import Alert from './components/alert/Alert.vue'
 </script>
 
 <template>
+  <NavBar />
+  <Alert />
   <header>
-    <div class="wrapper"><RouterView /></div>
+    <div class="wrapper">
+      <router-view />
+    </div>
   </header>
 </template>
 

@@ -19,7 +19,7 @@
       <el-input type="password" v-model="form.repeatPassword"></el-input>
     </el-form-item>
     <el-form-item>
-      <el-text> Already have an account?&nbsp;<RouterLink to="/login">Login</RouterLink> </el-text>
+      <el-text> Already have an account?&nbsp;<RouterLink to="login">Login</RouterLink> </el-text>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="submitForm('form')">Sign up</el-button>
@@ -36,7 +36,7 @@
 <script>
 import { defineComponent } from 'vue'
 import { ElForm, ElFormItem, ElInput, ElButton, ElText } from 'element-plus'
-import axios from 'axios'
+import { useUsersStore } from '../../../stores'
 
 export default defineComponent({
   name: 'SignUpForm',
@@ -87,7 +87,7 @@ export default defineComponent({
   },
   methods: {
     submitForm(formName) {
-      this.$refs[formName].validate((valid) => {
+      this.$refs[formName].validate(async (valid) => {
         if (valid) {
           console.log(`Data`, this.form)
           const data = {
@@ -99,9 +99,8 @@ export default defineComponent({
             repeat_password: this.form.repeatPassword
           }
 
-          axios.post('http://localhost:3000/' + 'api/auth/signup', data).then((res) => {
-            console.log(`*** RES`, res.data)
-          })
+          const usersStore = useUsersStore()
+          await usersStore.register(data)
 
           this.$message({
             message: 'Form submitted successfully',
