@@ -1,8 +1,4 @@
-const getUsers = require("./user/get-users.controller");
-const addUser = require("./user/add-user.controller");
-const deleteUser = require("./user/delete-user.controller");
-const updateUser = require("./user/update-user.controller");
-const deleteUsers = require("./user/delete-users.controller");
+const { getUsers, addUser, deleteUser, updateUser, deleteUsers } = require("./user/user.controller")
 
 const { signUp, logIn } = require("./auth/auth.controller")
 
