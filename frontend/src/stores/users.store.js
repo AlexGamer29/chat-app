@@ -10,9 +10,13 @@ export const useUsersStore = defineStore({
   id: 'users',
   state: () => ({
     users: {},
-    user: {}
+    user: {},
+    selectedFriend: null
   }),
   actions: {
+    async selectFriend(friend) {
+      this.selectedFriend = friend
+    },
     async register(user) {
       const alertStore = useAlertStore()
       try {
