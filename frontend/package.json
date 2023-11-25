@@ -11,10 +11,14 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.1.0",
     "axios": "^1.6.1",
     "chat-app": "file:..",
     "element-plus": "^2.4.2",
+    "node-sass": "^9.0.0",
     "pinia": "^2.1.7",
+    "sass": "^1.69.5",
+    "sass-loader": "^13.3.2",
     "vee-validate": "^4.11.8",
     "vue": "^3.3.4",
     "vue-router": "^4.2.5",
