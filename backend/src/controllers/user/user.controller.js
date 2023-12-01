@@ -55,7 +55,7 @@ const deleteUsers = async (req, res) => {
 const getUsers = async (req, res) => {
     console.log(`ID NE`, req.user)
     try {
-        let response = await find("users", { _id: { $ne: req.user.id },});
+        let response = await find("users", { _id: { $ne: req.user.id }, });
         return res.status(200).send({ status: 200, response });
     } catch (e) {
         res.status(400).send({ status: 400, message: e.message });
@@ -76,4 +76,23 @@ const updateUser = async (req, res) => {
     }
 };
 
-module.exports = { addUser, deleteUser, deleteUsers, getUsers, updateUser };
+const searchUser = async (req, res) => {
+    try {
+        console.log(req.user.id)
+
+        const keyword = req.query.search ? {
+            _id: { $ne: req.user.id },
+            $or: [
+                { first_name: { $regex: req.query.search, $options: "i" } },
+                { last_name: { $regex: req.query.search, $options: "i" } }
+            ],
+        } : { _id: { $ne: req.user.id } }
+        let response = await find("users", keyword, { password: 0 });
+        return res.status(200).send({ status: 200, data: response });
+    } catch (e) {
+        res.status(400).send({ status: 400, message: e.message });
+    }
+};
+
+
+module.exports = { addUser, deleteUser, deleteUsers, getUsers, updateUser, searchUser };

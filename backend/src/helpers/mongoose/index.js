@@ -1,13 +1,12 @@
 const Models = require("../../models/index.model");
 const fs = require("fs");
-// const { storage } = require("../lib");
 
-const find = async (modelDb, queryObj) =>
-    await Models[modelDb].find(queryObj).exec();
+const find = async (modelDb, queryObj, projection) =>
+    await Models[modelDb].find(queryObj, projection).exec();
 
 const findOne = async (modelDb, queryObj) =>
     await Models[modelDb].findOne(queryObj).exec();
-    
+
 const findOneAndSelect = async (modelDb, queryObj, selectQuery) =>
     await Models[modelDb].findOne(queryObj).select(selectQuery).exec();
 
