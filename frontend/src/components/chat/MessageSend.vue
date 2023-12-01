@@ -68,6 +68,7 @@ export default {
         class="form-control"
         placeholder="Aa"
         v-model="message"
+        @keyup.enter="sendMessage"
       />
       <div class="file hover-gift">
         <label for="emoji">
