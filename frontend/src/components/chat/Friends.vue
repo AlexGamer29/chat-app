@@ -19,7 +19,7 @@ const props = defineProps(['friend'])
     </div>
     <div class="friend-name-seen">
       <div class="friend-name">
-        <h4>{{ props.friend.first_name.concat(' ', props.friend.last_name) }}</h4>
+        <h4>{{ props.friend.members[1].user[0].first_name.concat(' ', props.friend.members[1].user[0].last_name) }}</h4>
       </div>
     </div>
   </div>

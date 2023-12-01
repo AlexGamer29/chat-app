@@ -1,38 +1,122 @@
 <script>
+import _ from 'lodash'
 import { storeToRefs } from 'pinia'
-import { onMounted } from 'vue'
-import { useAuthStore, useUsersStore } from '../stores'
+import { onMounted, ref, reactive } from 'vue'
+import { useAuthStore, useUsersStore, useConversationStore } from '../stores'
 import ActiveFriend from '../components/chat/ActiveFriend.vue'
 import Friends from '../components/chat/Friends.vue'
 import ChatBox from '../components/chat/ChatBox.vue'
+import { UserAvatar } from '../components'
+
+import {
+  ElDrawer,
+  ElButton,
+  ElForm,
+  ElFormItem,
+  ElRow,
+  ElCol,
+  ElInput,
+  ElMessageBox,
+  ElLoading,
+  ElDialog,
+  ElSelect,
+  ElOption
+} from 'element-plus'
 
 export default {
   components: {
     ActiveFriend,
     Friends,
-    ChatBox
+    ChatBox,
+    ElDrawer,
+    ElButton,
+    ElForm,
+    ElFormItem,
+    ElRow,
+    ElCol,
+    ElInput,
+    ElLoading,
+    ElDialog,
+    ElSelect,
+    ElOption,
+    UserAvatar
   },
   setup() {
     const { user } = storeToRefs(useAuthStore())
-    const { users, selectedFriend } = storeToRefs(useUsersStore())
+    const { searchUsers } = storeToRefs(useUsersStore())
+    const { conversations, selectedConversation } = storeToRefs(useConversationStore())
+    const dialogSearchUsers = ref(false)
+    const loadingSearchUsers = ref(false)
+    const dialogCreateGroup = ref(false)
+    let timer
 
-    const chooseFriend = async (friend) => {
-      await useUsersStore().selectFriend(friend)
+    const formSearchUsers = reactive({
+      name: ''
+    })
+
+    const formLabelWidth = '80px'
+
+    const onClick = async () => {
+      loadingSearchUsers.value = true
+      await useUsersStore()
+        .searchUser(formSearchUsers.name)
+        .then(() => {
+          loadingSearchUsers.value = false
+        })
+    }
+
+    const cancelForm = () => {
+      loadingSearchUsers.value = false
+      dialogSearchUsers.value = false
+      clearTimeout(timer)
+    }
+
+    const handleClose = (done) => {
+      if (loadingSearchUsers.value) {
+        return
+      }
+      ElMessageBox.confirm('Do you want to submit?')
+        .then(() => {
+          loadingSearchUsers.value = true
+          timer = setTimeout(() => {
+            done()
+            setTimeout(() => {
+              loadingSearchUsers.value = false
+            }, 400)
+          }, 2000)
+        })
+        .catch(() => {
+          // catch error
+        })
+    }
+
+    const chooseConversation = async (conversation) => {
+      await useConversationStore().selectConversation(conversation)
     }
 
     onMounted(async () => {
-      await useUsersStore()
-        .getAll()
+      await useConversationStore()
+        .getAllConversation()
         .then(() => {
-          chooseFriend(users.value[1])
+          chooseConversation(conversations.value[0])
         })
     })
 
     return {
       user,
-      users,
-      selectedFriend,
-      chooseFriend
+      conversations,
+      selectedConversation,
+      chooseConversation,
+      searchUsers,
+      dialogSearchUsers,
+      formSearchUsers,
+      loadingSearchUsers,
+      cancelForm,
+      onClick,
+      handleClose,
+      formLabelWidth,
+      dialogCreateGroup,
+      formCreateGroup
     }
   },
   data() {
@@ -44,6 +128,24 @@ export default {
     handleMessage(message) {
       this.receivedMessage = message
       console.log(this.receivedMessage)
+      const data = {
+        senderName: this.user.user._id,
+        // receiverId: this.selectedFriend._id,
+        message: this.receivedMessage ? this.receivedMessage : '❤'
+      }
+      useUsersStore().sendMessage(data)
+    },
+    logout() {
+      useAuthStore().logout()
+    },
+    async accessChat(user_id) {
+      const conversation = await useConversationStore().accessConversation(user_id)
+      await useConversationStore()
+        .getAllConversation()
+        .then(() => {
+          this.chooseConversation(conversation[0])
+        })
+      this.cancelForm()
     }
   }
 }
@@ -68,14 +170,19 @@ export default {
             </div>
 
             <div class="icons">
-              <div class="icon">
+              <div class="icon" @click="logout()">
                 <el-icon>
                   <more-filled></more-filled>
                 </el-icon>
               </div>
-              <div class="icon">
+              <div class="icon" @click="dialogSearchUsers = true">
                 <el-icon>
                   <edit></edit>
+                </el-icon>
+              </div>
+              <div class="icon" @click="dialogCreateGroup = true">
+                <el-icon>
+                  <chat-square></chat-square>
                 </el-icon>
               </div>
             </div>
@@ -93,12 +200,15 @@ export default {
           <div class="active-friends">
             <ActiveFriend />
           </div>
-          <div v-if="users && users.length > 0" class="friends">
+          <div v-if="conversations && conversations.length > 0" class="friends">
             <div
-              v-for="friend in users"
+              v-for="friend in conversations"
               :key="friend._id"
-              class="hover-friend"
-              @click="chooseFriend(friend)"
+              :class="{
+                'hover-friend': true,
+                active: selectedConversation && selectedConversation._id === friend._id
+              }"
+              @click="chooseConversation(friend)"
             >
               <Friends :friend="friend" />
             </div>
@@ -108,12 +218,48 @@ export default {
           </div>
         </div>
       </div>
-      <div v-if="selectedFriend" class="col-9">
-        <ChatBox :currentFriend="selectedFriend" @messageFromMiddle="handleMessage" />
+      <div v-if="selectedConversation" class="col-9">
+        <ChatBox :currentFriend="selectedConversation" @messageFromMiddle="handleMessage" />
       </div>
       <div v-else>
         <p>Select friend</p>
       </div>
     </div>
   </div>
+
+  <el-drawer
+    v-model="dialogSearchUsers"
+    title="Search users"
+    :before-close="handleClose"
+    direction="ltr"
+    class="search-user__drawer"
+  >
+    <div class="search-user__content">
+      <el-form :model="formSearchUsers" :size="'large'">
+        <el-row :justify="'space-evenly'">
+          <el-form-item label="Name" :label-width="formLabelWidth">
+            <el-input v-model="formSearchUsers.name" autocomplete="off" />
+          </el-form-item>
+          <el-form-item>
+            <el-button @click="cancelForm">Cancel</el-button>
+            <el-button type="primary" :loading="loadingSearchUsers" @click="onClick">{{
+              loadingSearchUsers ? 'Searching ...' : 'Submit'
+            }}</el-button>
+          </el-form-item>
+        </el-row>
+
+        <el-row :loading="loadingSearchUsers" element-loading-text="Loading...">
+          <el-col :span="24" v-if="searchUsers && searchUsers.length > 0">
+            <el-row v-for="search in searchUsers" :key="search._id">
+              <el-col :span="24">
+                <UserAvatar :handleFunction="() => accessChat(search._id)" :user="search" />
+              </el-col>
+            </el-row>
+          </el-col>
+        </el-row>
+      </el-form>
+    </div>
+  </el-drawer>
+
+ 
 </template>

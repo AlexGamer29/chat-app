@@ -44,7 +44,7 @@ export default {
 
               <div class="name">
                 <h3>
-                  {{ currentFriend.first_name.concat(' ', currentFriend.last_name) }}
+                  {{ currentFriend.members[1].user[0].first_name.concat(' ', currentFriend.members[1].user[0].last_name) }}
                 </h3>
               </div>
             </div>

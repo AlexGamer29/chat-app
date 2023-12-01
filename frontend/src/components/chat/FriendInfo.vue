@@ -20,7 +20,7 @@ const props = defineProps(['currentFriend'])
       <div class="active-user">Active</div>
 
       <div class="name">
-        <h4>{{ props.currentFriend.first_name.concat(' ', props.currentFriend.last_name) }}</h4>
+        <h4>{{ props.currentFriend.members[1].user[0].first_name.concat(' ', props.currentFriend.members[1].user[0].last_name) }}</h4>
       </div>
     </div>
 

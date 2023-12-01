@@ -9,11 +9,24 @@ const baseUrl = `${import.meta.env.VITE_API_URL}/api/user`
 export const useUsersStore = defineStore({
   id: 'users',
   state: () => ({
+    searchUsers: {},
     users: {},
     user: {},
     selectedFriend: null
   }),
   actions: {
+    async searchUser(string) {
+      this.searchUsers = { loading: true }
+      try {
+        let data = await fetchWrapper.get(`${baseUrl}?search=${string}`)
+        this.searchUsers = data.data
+      } catch (error) {
+        this.users = { error }
+      }
+    },
+    async sendMessage(data) {
+      console.log(`SEND data`, data)
+    },
     async selectFriend(friend) {
       this.selectedFriend = friend
     },
