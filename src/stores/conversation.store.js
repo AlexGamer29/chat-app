@@ -16,6 +16,12 @@ export const useConversationStore = defineStore({
         return data.data
       } catch (error) {}
     },
+    async createConversation(group_name, members) {
+      try {
+        let data = await fetchWrapper.post(`${baseUrl}/create`, { group_name, members })
+        return data.data
+      } catch (error) {}
+    },
     async getAllConversation() {
       this.conversations = { loading: true }
       try {

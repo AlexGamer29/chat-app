@@ -1,11 +1,12 @@
 <script>
+import _ from 'lodash'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, reactive } from 'vue'
 import { useAuthStore, useUsersStore, useConversationStore } from '../stores'
 import ActiveFriend from '../components/chat/ActiveFriend.vue'
 import Friends from '../components/chat/Friends.vue'
 import ChatBox from '../components/chat/ChatBox.vue'
-import { UserAvatar } from '../components'
+import { UserAvatar, UserBadge } from '../components'
 
 import {
   ElDrawer,
@@ -15,7 +16,6 @@ import {
   ElRow,
   ElCol,
   ElInput,
-  ElMessageBox,
   ElSkeleton
 } from 'element-plus'
 
@@ -32,7 +32,13 @@ export default {
     ElCol,
     ElInput,
     ElSkeleton,
-    UserAvatar
+    UserAvatar,
+    UserBadge
+  },
+  data() {
+    return {
+      receivedMessage: ''
+    }
   },
   setup() {
     const { user } = storeToRefs(useAuthStore())
@@ -45,8 +51,15 @@ export default {
     const formSearchUsers = reactive({
       name: ''
     })
-
     const formLabelWidth = '80px'
+
+    const dialogCreateGroup = ref(false)
+    const loadingCreateGroup = ref(false)
+    const formCreateGroup = reactive({
+      groupName: '',
+      searchString: '',
+      selectedUsers: []
+    })
 
     const onClick = async () => {
       loadingSearchUsers.value = true
@@ -60,6 +73,7 @@ export default {
     const cancelForm = () => {
       loadingSearchUsers.value = false
       dialogSearchUsers.value = false
+      useUsersStore().clearSearchUsers()
       clearTimeout(timer)
     }
 
@@ -67,19 +81,8 @@ export default {
       if (loadingSearchUsers.value) {
         return
       }
-      ElMessageBox.confirm('Do you want to submit?')
-        .then(() => {
-          loadingSearchUsers.value = true
-          timer = setTimeout(() => {
-            done()
-            setTimeout(() => {
-              loadingSearchUsers.value = false
-            }, 400)
-          }, 1000)
-        })
-        .catch(() => {
-          // catch error
-        })
+      done()
+      useUsersStore().clearSearchUsers()
     }
 
     const chooseConversation = async (conversation) => {
@@ -106,12 +109,10 @@ export default {
       cancelForm,
       onClick,
       handleClose,
-      formLabelWidth
-    }
-  },
-  data() {
-    return {
-      receivedMessage: ''
+      formLabelWidth,
+      dialogCreateGroup,
+      loadingCreateGroup,
+      formCreateGroup
     }
   },
   methods: {
@@ -136,6 +137,58 @@ export default {
           this.chooseConversation(conversation[0])
         })
       this.cancelForm()
+    },
+    handleGroup(userToAdd) {
+      if (this.formCreateGroup.selectedUsers.includes(userToAdd)) {
+        this.$message({
+          message: 'User already added',
+          type: 'warning'
+        })
+        return
+      }
+      this.formCreateGroup.selectedUsers.push(userToAdd)
+    },
+    handleDelete(delUser) {
+      _.remove(this.formCreateGroup.selectedUsers, { _id: delUser })
+    },
+    handleCancel() {
+      this.dialogCreateGroup = false
+    },
+    async handleSearch() {
+      this.loadingCreateGroup = true
+      await useUsersStore()
+        .searchUser(this.formCreateGroup.searchString)
+        .then(() => {
+          this.loadingCreateGroup = false
+        })
+    },
+    async handleSubmit() {
+      this.loadingCreateGroup = true
+      const data = {
+        group_name: this.formCreateGroup.groupName,
+        members: this.formCreateGroup.selectedUsers
+      }
+      if (data.group_name !== '' && data.members.length > 0) {
+        console.log(data)
+        const response = await useConversationStore().createConversation(
+          data.group_name,
+          data.members
+        )
+        console.log(`CREATE GROUP`, response)
+        await useConversationStore()
+          .getAllConversation()
+          .then(() => {
+            this.chooseConversation(response[0])
+          })
+      } else {
+        this.$message({
+          message:
+            'To create group, you need to have a group name and at least one member selected.',
+          duration: 5000,
+          type: 'warning'
+        })
+      }
+      this.loadingCreateGroup = false
     }
   }
 }
@@ -262,4 +315,60 @@ export default {
       </el-form>
     </div>
   </el-drawer>
+
+  <el-dialog v-model="dialogCreateGroup" title="Create group" width="30%" center>
+    <el-form :model="formCreateGroup" :size="'large'">
+      <el-form-item label="Group name">
+        <el-input
+          v-model="formCreateGroup.groupName"
+          autocomplete="off"
+          placeholder="Add group name"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-input
+          v-model="formCreateGroup.searchString"
+          autocomplete="off"
+          placeholder="Add users"
+          @keyup.enter="handleSearch"
+        />
+      </el-form-item>
+
+      <el-row v-if="formCreateGroup.selectedUsers && formCreateGroup.selectedUsers.length > 0">
+        <el-row v-for="user in formCreateGroup.selectedUsers" :key="user._id">
+          <UserBadge :user="user" :handleFunction="() => handleDelete(user._id)" />
+        </el-row>
+      </el-row>
+
+      <el-row v-if="loadingCreateGroup">
+        <el-col :span="24">
+          <el-skeleton :loading="loadingCreateGroup" avatar />
+        </el-col>
+      </el-row>
+
+      <el-row v-else-if="searchUsers && searchUsers.length > 0">
+        <el-col :span="24">
+          <el-row v-for="search in searchUsers" :key="search._id">
+            <el-col :span="24">
+              <UserAvatar :handleFunction="() => handleGroup(search)" :user="search" />
+            </el-col>
+          </el-row>
+        </el-col>
+      </el-row>
+
+      <el-row v-else-if="searchUsers.length === 0">
+        <el-col :span="24">
+          <p>No users found.</p>
+        </el-col>
+      </el-row>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="handleCancel">Cancel</el-button>
+        <el-button type="primary" :loading="loadingCreateGroup" @click="handleSubmit">{{
+          loadingCreateGroup ? 'Creating...' : 'Create'
+        }}</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
