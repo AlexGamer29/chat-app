@@ -43,7 +43,10 @@ export default {
               </div>
 
               <div class="name">
-                <h3>
+                <h3 v-if="currentFriend.is_group">
+                  {{ currentFriend.conversation_name }}
+                </h3>
+                <h3 v-else>
                   {{
                     currentFriend.members[1].user[0].first_name.concat(
                       ' ',
