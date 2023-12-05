@@ -37,7 +37,7 @@ export default {
   },
   watch: {
     currentFriend: 'loadMessageByConversationId'
-  },
+  }
 }
 </script>
 

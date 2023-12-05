@@ -1,7 +1,7 @@
 <script>
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, reactive } from 'vue'
-import { useAuthStore, useUsersStore, useConversationStore } from '../stores'
+import { useAuthStore, useUsersStore, useConversationStore, useMessageStore } from '../stores'
 import ActiveFriend from '../components/chat/ActiveFriend.vue'
 import Friends from '../components/chat/Friends.vue'
 import ChatBox from '../components/chat/ChatBox.vue'
@@ -115,15 +115,15 @@ export default {
     }
   },
   methods: {
-    handleMessage(message) {
+    async handleMessage(message) {
       this.receivedMessage = message
       console.log(this.receivedMessage)
       const data = {
-        senderName: this.user.user._id,
-        // receiverId: this.selectedFriend._id,
+        conversation_id: this.selectedConversation._id,
+        content: 'text',
         message: this.receivedMessage ? this.receivedMessage : '❤'
       }
-      useUsersStore().sendMessage(data)
+      await useMessageStore().sendMessage(data)
     },
     logout() {
       useAuthStore().logout()
