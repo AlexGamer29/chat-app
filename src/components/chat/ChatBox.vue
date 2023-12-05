@@ -1,9 +1,9 @@
 <script>
+import { storeToRefs } from 'pinia'
 import Message from './Message.vue'
 import MessageSend from './MessageSend.vue'
 import FriendInfo from './FriendInfo.vue'
-import { storeToRefs } from 'pinia'
-import { useMessageStore } from '../../stores'
+import { useConversationStore, useMessageStore } from '@/stores'
 
 export default {
   components: {
@@ -17,7 +17,8 @@ export default {
   data() {
     return {
       middleLayerMessage: '',
-      messages: []
+      messages: [],
+      loadReceiver: ''
     }
   },
   methods: {
@@ -30,13 +31,21 @@ export default {
       const { messages } = storeToRefs(useMessageStore())
       await useMessageStore().getMessageByConversationId(this.currentFriend._id)
       this.messages = messages
+    },
+    getReceiver() {
+      useConversationStore().getReceiver()
+      const { receiver } = storeToRefs(useConversationStore())
+      this.loadReceiver = receiver
     }
   },
   async created() {
     this.loadMessageByConversationId()
   },
   watch: {
-    currentFriend: 'loadMessageByConversationId'
+    currentFriend: async function () {
+      await this.getReceiver()
+      await this.loadMessageByConversationId()
+    }
   }
 }
 </script>
@@ -61,12 +70,7 @@ export default {
                   {{ currentFriend.conversation_name }}
                 </h3>
                 <h3 v-else>
-                  {{
-                    currentFriend.members[1].user[0].first_name.concat(
-                      ' ',
-                      currentFriend.members[1].user[0].last_name
-                    )
-                  }}
+                  {{ loadReceiver }}
                 </h3>
               </div>
             </div>
