@@ -90,13 +90,6 @@ export default defineComponent({
           return false
         }
       })
-    },
-    validateRepeatPassword(rule, value, callback) {
-      if (value !== this.form.password) {
-        callback(new Error('The two passwords do not match'))
-      } else {
-        callback()
-      }
     }
   }
 })

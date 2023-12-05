@@ -15,6 +15,9 @@ export const useUsersStore = defineStore({
     selectedFriend: null
   }),
   actions: {
+    clearSearchUsers() {
+      this.searchUsers = {}
+    },
     async searchUser(string) {
       this.searchUsers = { loading: true }
       try {
