@@ -1,7 +1,9 @@
 <script>
+import { storeToRefs } from 'pinia'
 import Message from './Message.vue'
 import MessageSend from './MessageSend.vue'
 import FriendInfo from './FriendInfo.vue'
+import { useConversationStore } from '@/stores'
 
 export default {
   components: {
@@ -14,7 +16,8 @@ export default {
   },
   data() {
     return {
-      middleLayerMessage: ''
+      middleLayerMessage: '',
+      loadReceiver: ''
     }
   },
   methods: {
@@ -22,6 +25,13 @@ export default {
       this.middleLayerMessage = message
       // Forward the message up to the parent
       this.$emit('messageFromMiddle', message)
+    }
+  },
+  watch: {
+    currentFriend: function () {
+      useConversationStore().getReceiver()
+      const { receiver } = storeToRefs(useConversationStore())
+      this.loadReceiver = receiver
     }
   }
 }
@@ -47,12 +57,7 @@ export default {
                   {{ currentFriend.conversation_name }}
                 </h3>
                 <h3 v-else>
-                  {{
-                    currentFriend.members[1].user[0].first_name.concat(
-                      ' ',
-                      currentFriend.members[1].user[0].last_name
-                    )
-                  }}
+                  {{ loadReceiver }}
                 </h3>
               </div>
             </div>

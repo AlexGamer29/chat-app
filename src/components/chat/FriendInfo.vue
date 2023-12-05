@@ -1,10 +1,23 @@
-<script setup>
+<script>
 import { storeToRefs } from 'pinia'
-import { useAuthStore } from '../../stores'
-const authStore = useAuthStore()
-const { user } = storeToRefs(authStore)
+import { useConversationStore } from '../../stores'
 
-const props = defineProps(['currentFriend'])
+export default {
+  props: {
+    currentFriend: Object
+  },
+  data() {
+    return {
+      loadReceiver: ''
+    }
+  },
+  watch: {
+    currentFriend: function () {
+      const { receiver } = storeToRefs(useConversationStore())
+      this.loadReceiver = receiver
+    }
+  }
+}
 </script>
 
 <template>
@@ -20,16 +33,11 @@ const props = defineProps(['currentFriend'])
       <div class="active-user">Active</div>
 
       <div class="name">
-        <h4 v-if="props.currentFriend.is_group">
-          {{ props.currentFriend.conversation_name }}
+        <h4 v-if="currentFriend.is_group">
+          {{ currentFriend.conversation_name }}
         </h4>
         <h4 v-else>
-          {{
-            props.currentFriend.members[1].user[0].first_name.concat(
-              ' ',
-              props.currentFriend.members[1].user[0].last_name
-            )
-          }}
+          {{ loadReceiver }}
         </h4>
       </div>
     </div>
