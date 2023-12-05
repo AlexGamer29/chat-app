@@ -27,9 +27,6 @@ export const useUsersStore = defineStore({
         this.users = { error }
       }
     },
-    async sendMessage(data) {
-      console.log(`SEND data`, data)
-    },
     async selectFriend(friend) {
       this.selectedFriend = friend
     },
