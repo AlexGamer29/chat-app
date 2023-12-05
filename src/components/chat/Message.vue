@@ -8,15 +8,7 @@
           </div>
         </div>
         <div class="time">
-          {{
-            new Date(message.createdAt).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })
-          }}
+          {{ formatTime(message.createdAt) }}
         </div>
       </div>
 
@@ -31,15 +23,7 @@
               <p className="message-text">{{ message.message }}</p>
             </div>
             <div className="time">
-              {{
-                new Date(message.createdAt).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })
-              }}
+              {{ formatTime(message.createdAt) }}
             </div>
           </div>
         </div>
@@ -75,6 +59,15 @@ export default {
       const { user } = storeToRefs(useAuthStore())
       this.user = user
       console.log(`USR`, this.user.user._id)
+    },
+    formatTime(timestamp) {
+      return new Date(timestamp).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
     }
   },
   created() {
