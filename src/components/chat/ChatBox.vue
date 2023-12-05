@@ -2,6 +2,8 @@
 import Message from './Message.vue'
 import MessageSend from './MessageSend.vue'
 import FriendInfo from './FriendInfo.vue'
+import { storeToRefs } from 'pinia'
+import { useMessageStore } from '../../stores'
 
 export default {
   components: {
@@ -14,7 +16,8 @@ export default {
   },
   data() {
     return {
-      middleLayerMessage: ''
+      middleLayerMessage: '',
+      messages: []
     }
   },
   methods: {
@@ -22,8 +25,19 @@ export default {
       this.middleLayerMessage = message
       // Forward the message up to the parent
       this.$emit('messageFromMiddle', message)
+    },
+    async loadMessageByConversationId() {
+      const { messages } = storeToRefs(useMessageStore())
+      await useMessageStore().getMessageByConversationId(this.currentFriend._id)
+      this.messages = messages
     }
-  }
+  },
+  async created() {
+    this.loadMessageByConversationId()
+  },
+  watch: {
+    currentFriend: 'loadMessageByConversationId'
+  },
 }
 </script>
 
@@ -69,7 +83,7 @@ export default {
             </div>
           </div>
 
-          <Message />
+          <Message :messages="messages" />
           <MessageSend @messageFromChild="handleMessageFromChild" />
         </div>
       </div>
