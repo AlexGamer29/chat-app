@@ -20,7 +20,10 @@ const props = defineProps(['currentFriend'])
       <div class="active-user">Active</div>
 
       <div class="name">
-        <h4>
+        <h4 v-if="props.currentFriend.is_group">
+          {{ props.currentFriend.conversation_name }}
+        </h4>
+        <h4 v-else>
           {{
             props.currentFriend.members[1].user[0].first_name.concat(
               ' ',
