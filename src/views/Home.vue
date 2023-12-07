@@ -2,7 +2,13 @@
 import _ from 'lodash'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref, reactive } from 'vue'
-import { useAuthStore, useUsersStore, useConversationStore, useMessageStore } from '../stores'
+import {
+  useAuthStore,
+  useUsersStore,
+  useConversationStore,
+  useMessageStore,
+  useSocketStore
+} from '../stores'
 import ActiveFriend from '../components/chat/ActiveFriend.vue'
 import Friends from '../components/chat/Friends.vue'
 import ChatBox from '../components/chat/ChatBox.vue'
@@ -41,6 +47,9 @@ export default {
     }
   },
   setup() {
+    const { socket, socketConnected } = storeToRefs(useSocketStore())
+    const typing = ref(false)
+    const isTyping = ref(false)
     const { user } = storeToRefs(useAuthStore())
     const { searchUsers } = storeToRefs(useUsersStore())
     const { conversations, selectedConversation } = storeToRefs(useConversationStore())
@@ -87,15 +96,29 @@ export default {
 
     const chooseConversation = async (conversation) => {
       await useConversationStore().selectConversation(conversation)
+      await useSocketStore().joinChat(selectedConversation.value._id)
     }
 
     onMounted(async () => {
+      await useSocketStore().initializeSocket(user.value.user)
       await useConversationStore()
         .getAllConversation()
         .then(() => {
           chooseConversation(conversations.value[0])
         })
+      socket.value.on('typing', () => (isTyping.value = true))
+      socket.value.on('stop typing', () => (isTyping.value = false))
     })
+
+    // watch(selectedConversation, (newSelectedConversation, oldSelectedConversation) => {
+    //   // Perform logic when selectedConversation changes
+    //   console.log('Selected Conversation changed:', newSelectedConversation)
+
+    //   // Example: Join the new conversation
+    //   if (newSelectedConversation) {
+    //     useSocketStore().joinChat(newSelectedConversation._id)
+    //   }
+    // })
 
     return {
       user,
@@ -112,19 +135,43 @@ export default {
       formLabelWidth,
       dialogCreateGroup,
       loadingCreateGroup,
-      formCreateGroup
+      formCreateGroup,
+      socket,
+      socketConnected,
+      typing,
+      isTyping
     }
   },
   methods: {
+    async handleTypingFromMiddle() {
+      if (!this.socketConnected) return
+
+      if (!this.typing) {
+        this.typing = true
+        this.socket.emit('typing', this.selectedConversation._id)
+      }
+      let lastTypingTime = new Date().getTime()
+      var timerLength = 3000
+      setTimeout(() => {
+        var timeNow = new Date().getTime()
+        var timeDiff = timeNow - lastTypingTime
+        if (timeDiff > timerLength && this.typing) {
+          this.socket.emit('stop typing', this.selectedConversation._id)
+          this.typing = false
+        }
+      }, timerLength)
+    },
     async handleMessage(message) {
       this.receivedMessage = message
       console.log(this.receivedMessage)
+      this.socket.emit('stop typing', this.selectedConversation._id)
       const data = {
         conversation_id: this.selectedConversation._id,
         content: 'text',
         message: this.receivedMessage ? this.receivedMessage : '❤'
       }
-      await useMessageStore().sendMessage(data)
+      let response = await useMessageStore().sendMessage(data)
+      this.socket.emit('new message', response, this.selectedConversation)
     },
     logout() {
       useAuthStore().logout()
@@ -262,7 +309,12 @@ export default {
         </div>
       </div>
       <div v-if="selectedConversation" class="col-9">
-        <ChatBox :currentFriend="selectedConversation" @messageFromMiddle="handleMessage" />
+        <ChatBox
+          :currentFriend="selectedConversation"
+          :userTyping="isTyping"
+          @messageFromMiddle="handleMessage"
+          @typingFromMiddle="handleTypingFromMiddle"
+        />
       </div>
       <div v-else>
         <p>Select friend</p>

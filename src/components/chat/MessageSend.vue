@@ -35,6 +35,9 @@ export default {
     sendMessage() {
       this.$emit('messageFromChild', this.message)
       this.message = ''
+    },
+    onTyping() {
+      this.$emit('typingFromChild')
     }
   }
 }
@@ -69,6 +72,7 @@ export default {
         placeholder="Aa"
         v-model="message"
         @keyup.enter="sendMessage"
+        @input="onTyping"
       />
       <div class="file hover-gift">
         <label for="emoji">

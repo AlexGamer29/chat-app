@@ -18,10 +18,14 @@ export const useMessageStore = defineStore({
         this.messages = { error }
       }
     },
+    pushMessageToStore(message) {
+      this.messages.push(message)
+    },
     async sendMessage(data) {
       try {
         let response = await fetchWrapper.post(`${baseUrl}/`, data)
         this.messages.push(response.data)
+        return response.data
       } catch (error) {
         this.messages = { error }
       }
