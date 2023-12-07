@@ -30,6 +30,7 @@
       </div>
     </div>
   </div>
+  <div v-if="userTyping">Typing...</div>
 </template>
 
 <script>
@@ -38,7 +39,8 @@ import { useAuthStore } from '../../stores'
 
 export default {
   props: {
-    messages: Object
+    messages: Object,
+    userTyping: Boolean
   },
   data() {
     return {
@@ -58,7 +60,6 @@ export default {
     setUser() {
       const { user } = storeToRefs(useAuthStore())
       this.user = user
-      console.log(`USR`, this.user.user._id)
     },
     formatTime(timestamp) {
       return new Date(timestamp).toLocaleDateString('en-US', {

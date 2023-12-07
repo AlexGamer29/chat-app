@@ -3,7 +3,8 @@ import { storeToRefs } from 'pinia'
 import Message from './Message.vue'
 import MessageSend from './MessageSend.vue'
 import FriendInfo from './FriendInfo.vue'
-import { useConversationStore, useMessageStore } from '@/stores'
+import { useConversationStore, useMessageStore, useSocketStore } from '@/stores'
+import { onMounted } from 'vue'
 
 export default {
   components: {
@@ -12,13 +13,22 @@ export default {
     FriendInfo
   },
   props: {
-    currentFriend: Object
+    currentFriend: Object,
+    userTyping: Boolean
   },
   data() {
     return {
       middleLayerMessage: '',
       messages: [],
-      loadReceiver: ''
+      loadReceiver: '',
+      isTyping: false
+    }
+  },
+  setup() {
+    const { socket } = storeToRefs(useSocketStore())
+
+    return {
+      socket
     }
   },
   methods: {
@@ -26,6 +36,11 @@ export default {
       this.middleLayerMessage = message
       // Forward the message up to the parent
       this.$emit('messageFromMiddle', message)
+    },
+    handleTypingFromChild() {
+      this.isTyping = true
+      // Forward the typing event up to the parent
+      this.$emit('typingFromMiddle')
     },
     async loadMessageByConversationId() {
       const { messages } = storeToRefs(useMessageStore())
@@ -39,7 +54,23 @@ export default {
     }
   },
   async created() {
-    this.loadMessageByConversationId()
+    await this.loadMessageByConversationId()
+    this.socket.on('message received', async (message) => {
+      if (this.currentFriend._id !== message.conversation_id) {
+        // Notification
+        // console.log(`NOTIFICATION`)
+        this.$message({
+          message: `User ${message.seen_users[0].first_name.concat(
+            ' ',
+            message.seen_users[0].last_name
+          )} sent you a message`,
+          type: 'warning'
+        })
+      } else {
+        console.log(`RECEIVE`, message)
+        await useMessageStore().pushMessageToStore(message)
+      }
+    })
   },
   watch: {
     currentFriend: async function () {
@@ -90,8 +121,11 @@ export default {
             </div>
           </div>
 
-          <Message :messages="messages" />
-          <MessageSend @messageFromChild="handleMessageFromChild" />
+          <Message :messages="messages" :userTyping="userTyping" />
+          <MessageSend
+            @messageFromChild="handleMessageFromChild"
+            @typingFromChild="handleTypingFromChild"
+          />
         </div>
       </div>
 
