@@ -1,5 +1,6 @@
 <script>
-import { useAuthStore } from '../../stores'
+import { storeToRefs } from 'pinia'
+import { useAuthStore, useSettingStore } from '../../stores'
 
 export default {
   props: {
@@ -8,6 +9,13 @@ export default {
   data() {
     return {
       loadReceiver: ''
+    }
+  },
+  setup() {
+    const { nightMode } = storeToRefs(useSettingStore())
+
+    return {
+      nightMode
     }
   },
   watch: {
@@ -46,7 +54,12 @@ export default {
       </div>
     </div>
     <div class="friend-name-seen">
-      <div class="friend-name">
+      <div
+        :class="{
+          'friend-name': true,
+          'night-mode': nightMode
+        }"
+      >
         <h4 v-if="friend.is_group">
           {{ friend.conversation_name }}
         </h4>

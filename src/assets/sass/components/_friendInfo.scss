@@ -30,6 +30,9 @@
         color: var(--text-color);
         margin-bottom: 8px;
       }
+      &.night-mode h4 {
+        color: white;
+      }
     }
   }
   .others {
@@ -50,7 +53,11 @@
       }
       label {
         cursor: pointer;
-        color: var(--text-color);
+        color: inherit;
+      }
+
+      &.night-mode {
+        color: white;
       }
     }
   }
@@ -73,5 +80,9 @@
   }
   #gallery:checked ~ .gallery {
     display: grid;
+  }
+
+  &.night-mode {
+    background-color: #212121;
   }
 }

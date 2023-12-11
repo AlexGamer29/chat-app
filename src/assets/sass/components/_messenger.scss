@@ -41,6 +41,9 @@
                 font-weight: 600;
                 color: var(--text-color);
               }
+              &.night-mode h3 {
+                color: white;
+              }
             }
           }
           .icons {
@@ -120,6 +123,10 @@
               }
             }
           }
+        }
+        &.night-mode {
+          background-color: #212121;
+          border-right: 1px solid #181818;
         }
       }
     }
