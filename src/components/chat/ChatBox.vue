@@ -3,8 +3,7 @@ import { storeToRefs } from 'pinia'
 import Message from './Message.vue'
 import MessageSend from './MessageSend.vue'
 import FriendInfo from './FriendInfo.vue'
-import { useConversationStore, useMessageStore, useSocketStore } from '@/stores'
-import { onMounted } from 'vue'
+import { useConversationStore, useMessageStore, useSocketStore, useSettingStore } from '@/stores'
 
 export default {
   components: {
@@ -26,9 +25,11 @@ export default {
   },
   setup() {
     const { socket } = storeToRefs(useSocketStore())
+    const { nightMode } = storeToRefs(useSettingStore())
 
     return {
-      socket
+      socket,
+      nightMode
     }
   },
   methods: {
@@ -86,8 +87,13 @@ export default {
     <input type="checkbox" id="dot" />
     <div class="row">
       <div class="col-8">
-        <div class="message-send-show">
-          <div class="header">
+        <div
+          :class="{
+            'message-send-show': true,
+            'night-mode': nightMode
+          }"
+        >
+          <div :class="{ header: true, 'night-mode': nightMode }">
             <div class="image-name">
               <div class="image">
                 <img
@@ -96,7 +102,12 @@ export default {
                 />
               </div>
 
-              <div class="name">
+              <div
+                :class="{
+                  name: true,
+                  'night-mode': nightMode
+                }"
+              >
                 <h3 v-if="currentFriend.is_group">
                   {{ currentFriend.conversation_name }}
                 </h3>

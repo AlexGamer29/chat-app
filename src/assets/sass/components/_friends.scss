@@ -66,6 +66,9 @@
               color: var(--text-color);
             }
           }
+          &.night-mode h4 {
+            color: white;
+          }
         }
         .seen-unseen-icon {
           display: flex;

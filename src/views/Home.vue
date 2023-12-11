@@ -7,7 +7,8 @@ import {
   useUsersStore,
   useConversationStore,
   useMessageStore,
-  useSocketStore
+  useSocketStore,
+  useSettingStore
 } from '../stores'
 import ActiveFriend from '../components/chat/ActiveFriend.vue'
 import Friends from '../components/chat/Friends.vue'
@@ -47,6 +48,7 @@ export default {
     }
   },
   setup() {
+    const { nightMode } = storeToRefs(useSettingStore())
     const { socket, socketConnected } = storeToRefs(useSocketStore())
     const typing = ref(false)
     const isTyping = ref(false)
@@ -121,6 +123,8 @@ export default {
     // })
 
     return {
+      nightMode,
+      toggleNightMode: useSettingStore().toggleNightMode,
       user,
       conversations,
       selectedConversation,
@@ -245,7 +249,12 @@ export default {
   <div v-if="user" class="messenger">
     <div class="row">
       <div class="col-3">
-        <div class="left-side">
+        <div
+          :class="{
+            'left-side': true,
+            'night-mode': nightMode
+          }"
+        >
           <div class="top">
             <div class="image-name">
               <div class="image">
@@ -254,12 +263,26 @@ export default {
                   alt=""
                 />
               </div>
-              <div class="name">
+              <div
+                :class="{
+                  name: true,
+                  'night-mode': nightMode
+                }"
+              >
                 <h3>{{ user.user.first_name.concat(' ', user.user.last_name) }}</h3>
               </div>
             </div>
 
             <div class="icons">
+              <div class="non-icon" @click="null">
+                <el-switch
+                  v-model="nightMode"
+                  active-color="#13ce66"
+                  inactive-color="#ff4949"
+                  @change="useSettingStore().toggleNightMode()"
+                >
+                </el-switch>
+              </div>
               <div class="icon" @click="logout()">
                 <el-icon>
                   <more-filled></more-filled>
@@ -287,7 +310,12 @@ export default {
               <input type="text" placeholder="Search" class="form-control" />
             </div>
           </div>
-          <div class="active-friends">
+          <div
+            :class="{
+              'active-friends': true,
+              'night-mode': nightMode
+            }"
+          >
             <ActiveFriend />
           </div>
           <div v-if="conversations && conversations.length > 0" class="friends">
