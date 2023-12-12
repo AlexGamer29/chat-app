@@ -324,6 +324,7 @@ export default {
               :key="friend._id"
               :class="{
                 'hover-friend': true,
+                'night-mode': nightMode,
                 active: selectedConversation && selectedConversation._id === friend._id
               }"
               @click="chooseConversation(friend)"

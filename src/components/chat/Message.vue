@@ -17,8 +17,8 @@
           {{ formatTime(message.createdAt) }}
         </div>
         <div class="time">
-          <div v-for="seen in message.seen_users" :key="seen._id">
-            <div>{{ seen.first_name }}</div>
+          <div v-for="(seen, index) in message.seen_users" :key="seen._id">
+            <div v-if="index !== 0">{{ seen.first_name.concat(' ', seen.last_name) }}</div>
           </div>
         </div>
       </div>
