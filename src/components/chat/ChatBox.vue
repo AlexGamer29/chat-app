@@ -20,7 +20,8 @@ export default {
       middleLayerMessage: '',
       messages: [],
       loadReceiver: '',
-      isTyping: false
+      isTyping: false,
+      isFocusIn: false
     }
   },
   setup() {
@@ -42,6 +43,10 @@ export default {
       this.isTyping = true
       // Forward the typing event up to the parent
       this.$emit('typingFromMiddle')
+    },
+    handleFocusInFromChild() {
+      this.isFocusIn = true
+      this.$emit('focusInFromMiddle')
     },
     async loadMessageByConversationId() {
       const { messages } = storeToRefs(useMessageStore())
@@ -136,6 +141,7 @@ export default {
           <MessageSend
             @messageFromChild="handleMessageFromChild"
             @typingFromChild="handleTypingFromChild"
+            @focusInFromChild="handleFocusInFromChild"
           />
         </div>
       </div>

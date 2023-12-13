@@ -38,6 +38,9 @@ export default {
     },
     onTyping() {
       this.$emit('typingFromChild')
+    },
+    onFocusIn() {
+      this.$emit('focusInFromChild')
     }
   }
 }
@@ -73,6 +76,7 @@ export default {
         v-model="message"
         @keyup.enter="sendMessage"
         @input="onTyping"
+        @focusin="onFocusIn"
       />
       <div class="file hover-gift">
         <label for="emoji">
