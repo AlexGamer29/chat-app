@@ -110,6 +110,18 @@ export default {
         })
       socket.value.on('typing', () => (isTyping.value = true))
       socket.value.on('stop typing', () => (isTyping.value = false))
+      socket.value.on('seen', async (user, message) => {
+        if (selectedConversation.value._id !== message.conversation_id) {
+          console.log(
+            `User ${message.seen_users[0].first_name.concat(
+              ' ',
+              message.seen_users[0].last_name
+            )} seen a message`
+          )
+        } else {
+          await useMessageStore().pushSeenMessage(user, message)
+        }
+      })
     })
 
     // watch(selectedConversation, (newSelectedConversation, oldSelectedConversation) => {
@@ -147,6 +159,9 @@ export default {
     }
   },
   methods: {
+    async handleFocusInFromMiddle() {
+      useMessageStore().seenMessages()
+    },
     async handleTypingFromMiddle() {
       if (!this.socketConnected) return
 
@@ -343,6 +358,7 @@ export default {
           :userTyping="isTyping"
           @messageFromMiddle="handleMessage"
           @typingFromMiddle="handleTypingFromMiddle"
+          @focusInFromMiddle="handleFocusInFromMiddle"
         />
       </div>
       <div v-else>
