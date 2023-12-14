@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="messageContainer"
     :class="{
       'message-show': true,
       'night-mode': nightMode
@@ -76,7 +77,16 @@ export default {
     }
   },
   watch: {
-    messages: 'setShowMessages',
+    // messages: 'setShowMessages',
+    messages: {
+      handler() {
+        // Assuming you're updating messages asynchronously
+        this.$nextTick(() => {
+          this.scrollToBottom()
+        })
+      },
+      deep: true
+    },
     user: 'setUser'
   },
   methods: {
@@ -95,6 +105,16 @@ export default {
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit'
+      })
+    },
+    scrollToBottom() {
+      this.$nextTick(() => {
+        const container = this.$refs.messageContainer
+
+        // Check if the container element exists before trying to scroll
+        if (container) {
+          container.scrollTop = container.scrollHeight
+        }
       })
     }
   },
