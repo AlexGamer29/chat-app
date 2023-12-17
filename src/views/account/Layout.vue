@@ -10,7 +10,7 @@ if (authStore.user) {
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" style="display: flex; justify-content: center">
     <router-view />
   </div>
 </template>
