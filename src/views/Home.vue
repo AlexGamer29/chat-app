@@ -234,18 +234,26 @@ export default {
         group_name: this.formCreateGroup.groupName,
         members: this.formCreateGroup.selectedUsers
       }
+
+      const resetDialogCreateGroup = {
+        groupName: '',
+        searchString: '',
+        selectedUsers: []
+      }
+
       if (data.group_name !== '' && data.members.length > 0) {
-        console.log(data)
         const response = await useConversationStore().createConversation(
           data.group_name,
           data.members
         )
-        console.log(`CREATE GROUP`, response)
         await useConversationStore()
           .getAllConversation()
           .then(() => {
             this.chooseConversation(response[0])
           })
+        this.dialogCreateGroup = false
+        Object.assign(this.formCreateGroup, resetDialogCreateGroup)
+        useUsersStore().clearSearchUsers()
       } else {
         this.$message({
           message:
