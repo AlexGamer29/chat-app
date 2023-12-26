@@ -57,20 +57,43 @@ export const useUsersStore = defineStore({
         this.user = { error }
       }
     },
-    async update(id, params) {
-      await fetchWrapper.put(`${baseUrl}/${id}`, params)
+    async update(userUpdate) {
+      try {
+        // Send a PUT request to update the user on the server
+        const updateUser = await fetchWrapper.put(`${baseUrl}/update-user`, userUpdate);
 
-      // update stored user if the logged in user updated their own record
-      const authStore = useAuthStore()
-      if (id === authStore.user.id) {
-        // update local storage
-        const user = { ...authStore.user, ...params }
-        localStorage.setItem('user', JSON.stringify(user))
+        // Check if the response is successful
+        if (updateUser.status === 200) {
+          const authStore = useAuthStore();
+          const storedUserString = localStorage.getItem('user');
+          // Check if the user object exists in local storage
+          if (storedUserString) {
+            // Parse the stored JSON string to get the user object
+            const storedUser = JSON.parse(storedUserString);
 
-        // update auth user in pinia state
-        authStore.user = user
+            // Update the user object with the new data
+            Object.assign(storedUser.user, updateUser.user);
+
+            // Store the updated user object back into local storage
+            localStorage.setItem('user', JSON.stringify(storedUser));
+
+            // Update auth user in pinia state
+            authStore.user.user = updateUser.user;
+
+            console.log('User object updated successfully:', storedUser);
+          } else {
+            console.error('User object not found in local storage');
+          }
+        } else {
+          // Handle unsuccessful response
+          console.error('Update user request failed:', updateUser.message);
+        }
+      } catch (error) {
+        // Handle fetch error
+        console.error('Error updating user:', error.message);
       }
     },
+
     async delete(id) {
       // add isDeleting prop to user being deleted
       this.users.find((x) => x.id === id).isDeleting = true

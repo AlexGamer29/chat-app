@@ -47,23 +47,12 @@ export default {
   data() {
     return {
       receivedMessage: '',
-      rulesEditUser: {
-        firstName: [{ required: true, message: 'Please enter your first name', trigger: 'blur' }],
-        lastName: [{ required: true, message: 'Please enter your last name', trigger: 'blur' }],
-        userName: [{ required: true, message: 'Please enter your username', trigger: 'blur' }],
-        password: [
-          { required: true, message: 'Please enter your password', trigger: 'blur' },
-          {
-            pattern: /^[a-zA-Z0-9]{6,30}$/,
-            message:
-              'Password must contain only alphanumeric characters and be between 6 and 30 characters long',
-            trigger: 'blur'
-          }
-        ],
-        repeatPassword: [
-          { required: true, message: 'Please enter your password again', trigger: 'blur' },
-          { validator: this.validateRepeatPassword, trigger: 'blur' }
-        ]
+      formEditUser: {
+        firstName: '',
+        lastName: '',
+        userName: '',
+        password: '',
+        repeatPassword: ''
       }
     }
   },
@@ -94,12 +83,6 @@ export default {
 
     const dialogEditUser = ref(false)
     const loadingEditUser = ref(false)
-    const formEditUser = reactive({
-      firstName: '',
-      lastName: '',
-      userName: '',
-      passWord: ''
-    })
 
     const onClick = async () => {
       loadingSearchUsers.value = true
@@ -183,7 +166,6 @@ export default {
       formCreateGroup,
       dialogEditUser,
       loadingEditUser,
-      formEditUser,
       socket,
       socketConnected,
       typing,
@@ -309,76 +291,41 @@ export default {
       }
       return isImage
     },
-    async handleSubmitEditUser(formName) {
-      // this.loadingEditUser = true
+    async handleSubmitEditUser() {
+      this.loadingEditUser = true
       // Validation
-      this.$refs[formName].validate(async (valid) => {
-        if (valid) {
-          console.log(`Data`, this.formEditUser)
-          // const data = {
-          //   first_name: this.form.firstName,
-          //   last_name: this.form.lastName,
-          //   username: this.form.username,
-          //   email: this.form.email,
-          //   password: this.form.password,
-          //   repeat_password: this.form.repeatPassword
-          // }
+      const validationErrors = []
 
-          // const usersStore = useUsersStore()
-          // await usersStore.register(data)
+      // Validate repeat password
+      if (this.formEditUser.repeatPassword !== this.formEditUser.password) {
+        validationErrors.push('The two passwords do not match.')
+      }
 
-          this.$message({
-            message: 'Form submitted successfully',
-            type: 'success'
-          })
-        } else {
-          this.$message({
-            message: 'Form validation failed',
-            type: 'error'
-          })
-          return false
+      // Handle validation results
+      if (validationErrors.length > 0) {
+        // Validation failed, show alert boxes for each error
+        validationErrors.forEach((error) => {
+          alert(error)
+        })
+      } else {
+        // Validation passed, proceed with your logic
+        const data = {
+          first_name: this.formEditUser.firstName,
+          last_name: this.formEditUser.lastName,
+          username: this.formEditUser.userName,
+          password: this.formEditUser.password
         }
-      })
+        useUsersStore().update(data)
+      }
+      this.loadingEditUser = false
+      this.dialogEditUser = false
+    },
+    cancelDialogEditUser() {
+      this.dialogEditUser = false
 
-
-      // const data = {
-      //   first_name: this.formEditUser.firstName,
-      //   last_name: this.formEditUser.lastName,
-      //   user_name: this.formEditUser.userName,
-      //   password: this.formEditUser.passWord
-      // }
-
-      // const resetDialogCreateGroup = {
-      //   groupName: '',
-      //   searchString: '',
-      //   selectedUsers: []
-      // }
-
-      // if (data.group_name !== '' && data.members.length > 0) {
-      //   const response = await useConversationStore().createConversation(
-      //     data.group_name,
-      //     data.members
-      //   )
-      //   await useConversationStore()
-      //     .getAllConversation()
-      //     .then(() => {
-      //       this.chooseConversation(response[0])
-      //     })
-      //   this.dialogCreateGroup = false
-      //   Object.assign(this.formCreateGroup, resetDialogCreateGroup)
-      //   useUsersStore().clearSearchUsers()
-      // } else {
-      //   this.$message({
-      //     message:
-      //       'To create group, you need to have a group name and at least one member selected.',
-      //     duration: 5000,
-      //     type: 'warning'
-      //   })
-      // }
-      // this.loadingEditUser = false
     },
     validateRepeatPassword(rule, value, callback) {
-      if (value !== this.formEditUser.passWord) {
+      if (value !== this.formEditUser.password) {
         callback(new Error('The two passwords do not match'))
       } else {
         callback()
@@ -615,21 +562,15 @@ export default {
       </div>
     </div>
 
-    <el-form ref="formEditUser" :model="formEditUser" :rules="rulesEditUser" :size="'default'" label-position="top">
+    <el-form ref="formEditUser" :model="formEditUser" :size="'default'" label-position="top">
       <el-form-item label="Email">
-        <el-input
-          v-model="formEditUser.email"
-          autocomplete="off"
-          :model-value="user.user.email"
-          disabled
-        />
+        <el-input autocomplete="off" :model-value="user.user.email" disabled />
       </el-form-item>
       <el-form-item label="First name">
         <el-input
           v-model="formEditUser.firstName"
           autocomplete="off"
           placeholder="Change first name"
-          :model-value="user.user.first_name"
         />
       </el-form-item>
       <el-form-item label="Last name">
@@ -637,7 +578,6 @@ export default {
           v-model="formEditUser.lastName"
           autocomplete="off"
           placeholder="Change last name"
-          :model-value="user.user.last_name"
         />
       </el-form-item>
       <el-form-item label="Username">
@@ -645,28 +585,23 @@ export default {
           v-model="formEditUser.userName"
           autocomplete="off"
           placeholder="Change user name"
-          :model-value="user.user.username"
         />
       </el-form-item>
       <el-form-item label="Password">
-        <el-input
-          v-model="formEditUser.passWord"
-          autocomplete="off"
-          placeholder="Change password"
-        />
+        <el-input v-model="formEditUser.password" type="password" placeholder="Change password" />
       </el-form-item>
       <el-form-item label="Confirm password">
         <el-input
-          v-model="formEditUser.passWord"
-          autocomplete="off"
+          v-model="formEditUser.repeatPassword"
+          type="password"
           placeholder="Confirm password"
         />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="handleCancel">Cancel</el-button>
-        <el-button type="primary" :loading="loadingEditUser" @click="handleSubmitEditUser('formEditUser')">{{
+        <el-button @click="cancelDialogEditUser()">Cancel</el-button>
+        <el-button type="primary" :loading="loadingEditUser" @click="handleSubmitEditUser()">{{
           loadingEditUser ? 'Sending...' : 'Send'
         }}</el-button>
       </span>
