@@ -410,7 +410,7 @@ export default {
               </div>
               <div class="icon" @click="logout()">
                 <el-icon>
-                  <more-filled></more-filled>
+                  <switch-button></switch-button>
                 </el-icon>
               </div>
               <div class="icon" @click="dialogSearchUsers = true">
@@ -425,7 +425,7 @@ export default {
               </div>
               <div class="icon" @click="dialogVisible = true">
                 <el-icon>
-                  <chat-square></chat-square>
+                  <clock></clock>
                 </el-icon>
               </div>
             </div>
