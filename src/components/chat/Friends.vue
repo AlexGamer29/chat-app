@@ -8,7 +8,7 @@ export default {
   },
   data() {
     return {
-      loadReceiver: ''
+      loadReceiver: {}
     }
   },
   setup() {
@@ -29,12 +29,12 @@ export default {
       const { user } = useAuthStore()
 
       if (this.friend.is_group) {
-        this.loadReceiver = '' // Reset loadReceiver for groups
+        this.loadReceiver = this.friend.members[0].user[0]
       } else {
         // Find the receiver from members
         this.friend.members.forEach((member) => {
           if (member.user[0]._id !== user.user._id) {
-            this.loadReceiver = member.user[0].first_name + ' ' + member.user[0].last_name
+            this.loadReceiver = member.user[0]
           }
         })
       }
@@ -47,10 +47,7 @@ export default {
   <div class="friend">
     <div class="friend-image">
       <div class="image">
-        <img
-          src="https://png.pngtree.com/png-clipart/20230207/original/pngtree-beauty-logo-design-png-image_8947095.png"
-          alt=""
-        />
+        <img :src="loadReceiver.profile_photo" alt="" />
       </div>
     </div>
     <div class="friend-name-seen">
@@ -63,9 +60,7 @@ export default {
         <h4 v-if="friend.is_group">
           {{ friend.conversation_name }}
         </h4>
-        <h4 v-else>
-          {{ loadReceiver }}
-        </h4>
+        <h4 v-else>{{ loadReceiver.first_name }} {{ loadReceiver.last_name }}</h4>
       </div>
     </div>
   </div>

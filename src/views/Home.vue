@@ -23,7 +23,8 @@ import {
   ElRow,
   ElCol,
   ElInput,
-  ElSkeleton
+  ElSkeleton,
+  ElAvatar
 } from 'element-plus'
 
 export default {
@@ -39,12 +40,31 @@ export default {
     ElCol,
     ElInput,
     ElSkeleton,
+    ElAvatar,
     UserAvatar,
     UserBadge
   },
   data() {
     return {
-      receivedMessage: ''
+      receivedMessage: '',
+      rulesEditUser: {
+        firstName: [{ required: true, message: 'Please enter your first name', trigger: 'blur' }],
+        lastName: [{ required: true, message: 'Please enter your last name', trigger: 'blur' }],
+        userName: [{ required: true, message: 'Please enter your username', trigger: 'blur' }],
+        password: [
+          { required: true, message: 'Please enter your password', trigger: 'blur' },
+          {
+            pattern: /^[a-zA-Z0-9]{6,30}$/,
+            message:
+              'Password must contain only alphanumeric characters and be between 6 and 30 characters long',
+            trigger: 'blur'
+          }
+        ],
+        repeatPassword: [
+          { required: true, message: 'Please enter your password again', trigger: 'blur' },
+          { validator: this.validateRepeatPassword, trigger: 'blur' }
+        ]
+      }
     }
   },
   setup() {
@@ -70,6 +90,15 @@ export default {
       groupName: '',
       searchString: '',
       selectedUsers: []
+    })
+
+    const dialogEditUser = ref(false)
+    const loadingEditUser = ref(false)
+    const formEditUser = reactive({
+      firstName: '',
+      lastName: '',
+      userName: '',
+      passWord: ''
     })
 
     const onClick = async () => {
@@ -152,6 +181,9 @@ export default {
       dialogCreateGroup,
       loadingCreateGroup,
       formCreateGroup,
+      dialogEditUser,
+      loadingEditUser,
+      formEditUser,
       socket,
       socketConnected,
       typing,
@@ -263,6 +295,94 @@ export default {
         })
       }
       this.loadingCreateGroup = false
+    },
+    handleUploadSuccess(response, file) {
+      // Handle successful file upload, e.g., update user's profile image
+      console.log('File uploaded successfully:', response)
+      console.log(`FILE`, file)
+      this.user.user.profile_photo = file.response.url
+    },
+    beforeAvatarUpload(file) {
+      const isImage = file.type.startsWith('image/')
+      if (!isImage) {
+        this.$message.error('Please upload an image file.')
+      }
+      return isImage
+    },
+    async handleSubmitEditUser(formName) {
+      // this.loadingEditUser = true
+      // Validation
+      this.$refs[formName].validate(async (valid) => {
+        if (valid) {
+          console.log(`Data`, this.formEditUser)
+          // const data = {
+          //   first_name: this.form.firstName,
+          //   last_name: this.form.lastName,
+          //   username: this.form.username,
+          //   email: this.form.email,
+          //   password: this.form.password,
+          //   repeat_password: this.form.repeatPassword
+          // }
+
+          // const usersStore = useUsersStore()
+          // await usersStore.register(data)
+
+          this.$message({
+            message: 'Form submitted successfully',
+            type: 'success'
+          })
+        } else {
+          this.$message({
+            message: 'Form validation failed',
+            type: 'error'
+          })
+          return false
+        }
+      })
+
+
+      // const data = {
+      //   first_name: this.formEditUser.firstName,
+      //   last_name: this.formEditUser.lastName,
+      //   user_name: this.formEditUser.userName,
+      //   password: this.formEditUser.passWord
+      // }
+
+      // const resetDialogCreateGroup = {
+      //   groupName: '',
+      //   searchString: '',
+      //   selectedUsers: []
+      // }
+
+      // if (data.group_name !== '' && data.members.length > 0) {
+      //   const response = await useConversationStore().createConversation(
+      //     data.group_name,
+      //     data.members
+      //   )
+      //   await useConversationStore()
+      //     .getAllConversation()
+      //     .then(() => {
+      //       this.chooseConversation(response[0])
+      //     })
+      //   this.dialogCreateGroup = false
+      //   Object.assign(this.formCreateGroup, resetDialogCreateGroup)
+      //   useUsersStore().clearSearchUsers()
+      // } else {
+      //   this.$message({
+      //     message:
+      //       'To create group, you need to have a group name and at least one member selected.',
+      //     duration: 5000,
+      //     type: 'warning'
+      //   })
+      // }
+      // this.loadingEditUser = false
+    },
+    validateRepeatPassword(rule, value, callback) {
+      if (value !== this.formEditUser.passWord) {
+        callback(new Error('The two passwords do not match'))
+      } else {
+        callback()
+      }
     }
   }
 }
@@ -279,12 +399,9 @@ export default {
           }"
         >
           <div class="top">
-            <div class="image-name">
+            <div class="image-name" @click="dialogEditUser = true">
               <div class="image">
-                <img
-                  src="https://png.pngtree.com/png-clipart/20230207/original/pngtree-beauty-logo-design-png-image_8947095.png"
-                  alt=""
-                />
+                <img :src="user.user.profile_photo" alt="" />
               </div>
               <div
                 :class="{
@@ -476,4 +593,110 @@ export default {
       </span>
     </template>
   </el-dialog>
+
+  <el-dialog v-model="dialogEditUser" title="Edit user" width="30%" center>
+    <!-- Header Section -->
+    <div class="header">
+      <el-avatar :src="user.user.profile_photo" size="large"></el-avatar>
+      <div class="user-info">
+        <h1>{{ user.user.first_name }} {{ user.user.last_name }}</h1>
+        <el-upload
+          action="http://localhost:3000/api/file/upload"
+          :headers="{
+            Authorization: `Bearer ${user.token}`
+          }"
+          :show-file-list="false"
+          :on-success="handleUploadSuccess"
+          accept="image/*"
+          :before-upload="beforeAvatarUpload"
+        >
+          <el-button size="small" type="primary">Change Avatar</el-button>
+        </el-upload>
+      </div>
+    </div>
+
+    <el-form ref="formEditUser" :model="formEditUser" :rules="rulesEditUser" :size="'default'" label-position="top">
+      <el-form-item label="Email">
+        <el-input
+          v-model="formEditUser.email"
+          autocomplete="off"
+          :model-value="user.user.email"
+          disabled
+        />
+      </el-form-item>
+      <el-form-item label="First name">
+        <el-input
+          v-model="formEditUser.firstName"
+          autocomplete="off"
+          placeholder="Change first name"
+          :model-value="user.user.first_name"
+        />
+      </el-form-item>
+      <el-form-item label="Last name">
+        <el-input
+          v-model="formEditUser.lastName"
+          autocomplete="off"
+          placeholder="Change last name"
+          :model-value="user.user.last_name"
+        />
+      </el-form-item>
+      <el-form-item label="Username">
+        <el-input
+          v-model="formEditUser.userName"
+          autocomplete="off"
+          placeholder="Change user name"
+          :model-value="user.user.username"
+        />
+      </el-form-item>
+      <el-form-item label="Password">
+        <el-input
+          v-model="formEditUser.passWord"
+          autocomplete="off"
+          placeholder="Change password"
+        />
+      </el-form-item>
+      <el-form-item label="Confirm password">
+        <el-input
+          v-model="formEditUser.passWord"
+          autocomplete="off"
+          placeholder="Confirm password"
+        />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button @click="handleCancel">Cancel</el-button>
+        <el-button type="primary" :loading="loadingEditUser" @click="handleSubmitEditUser('formEditUser')">{{
+          loadingEditUser ? 'Sending...' : 'Send'
+        }}</el-button>
+      </span>
+    </template>
+  </el-dialog>
 </template>
+
+<style scoped>
+/* Add custom styles if needed */
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+}
+
+.user-info h1 {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.user-info p {
+  margin: 0;
+  color: #888;
+}
+</style>

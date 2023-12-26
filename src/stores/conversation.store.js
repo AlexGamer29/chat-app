@@ -18,7 +18,13 @@ export const useConversationStore = defineStore({
       if (this.selectedConversation && !this.selectedConversation.is_group) {
         this.selectedConversation.members.forEach((member) => {
           if (member.user[0]._id !== user.user._id) {
-            this.receiver = member.user[0].first_name + ' ' + member.user[0].last_name
+            this.receiver = member.user[0]
+          }
+        })
+      } else if (this.selectedConversation && this.selectedConversation.is_group) {
+        this.selectedConversation.members.forEach((member) => {
+          if (member.user[0]._id === user.user._id) {
+            this.receiver = member.user[0]
           }
         })
       }
@@ -27,13 +33,13 @@ export const useConversationStore = defineStore({
       try {
         let data = await fetchWrapper.post(`${baseUrl}`, { user_id })
         return data.data
-      } catch (error) {}
+      } catch (error) { }
     },
     async createConversation(group_name, members) {
       try {
         let data = await fetchWrapper.post(`${baseUrl}/create`, { group_name, members })
         return data.data
-      } catch (error) {}
+      } catch (error) { }
     },
     async getAllConversation() {
       this.conversations = { loading: true }

@@ -8,7 +8,7 @@ export default {
   },
   data() {
     return {
-      loadReceiver: ''
+      loadReceiver: {}
     }
   },
   setup() {
@@ -37,10 +37,7 @@ export default {
     <input type="checkbox" id="gallery" />
     <div class="image-name">
       <div class="image">
-        <img
-          src="https://png.pngtree.com/png-clipart/20230207/original/pngtree-beauty-logo-design-png-image_8947095.png"
-          alt=""
-        />
+        <img :src="loadReceiver.profile_photo" alt="" />
       </div>
       <div class="active-user">Active</div>
 
@@ -53,9 +50,7 @@ export default {
         <h4 v-if="currentFriend.is_group">
           {{ currentFriend.conversation_name }}
         </h4>
-        <h4 v-else>
-          {{ loadReceiver }}
-        </h4>
+        <h4 v-else>{{ loadReceiver.first_name }} {{ loadReceiver.last_name }}</h4>
       </div>
     </div>
 

@@ -19,7 +19,7 @@ export default {
     return {
       middleLayerMessage: '',
       messages: [],
-      loadReceiver: '',
+      loadReceiver: {},
       isTyping: false,
       isFocusIn: false
     }
@@ -101,10 +101,7 @@ export default {
           <div :class="{ header: true, 'night-mode': nightMode }">
             <div class="image-name">
               <div class="image">
-                <img
-                  src="https://png.pngtree.com/png-clipart/20230207/original/pngtree-beauty-logo-design-png-image_8947095.png"
-                  alt=""
-                />
+                <img :src="loadReceiver.profile_photo" alt="" />
               </div>
 
               <div
@@ -116,9 +113,7 @@ export default {
                 <h3 v-if="currentFriend.is_group">
                   {{ currentFriend.conversation_name }}
                 </h3>
-                <h3 v-else>
-                  {{ loadReceiver }}
-                </h3>
+                <h3 v-else>{{ loadReceiver.first_name }} {{ loadReceiver.last_name }}</h3>
               </div>
             </div>
 

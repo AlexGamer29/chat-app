@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 
 import authRoutes from './auth.routes'
-import usersRoutes from './users.routes'
 
 import { useAuthStore, useAlertStore } from '../stores'
 
@@ -12,7 +11,6 @@ export const router = createRouter({
   routes: [
     { path: '/', component: Home },
     { ...authRoutes },
-    { ...usersRoutes }
     // // catch all redirect to home page
     // { path: '/:pathMatch(.*)*', redirect: '/' }
   ]
