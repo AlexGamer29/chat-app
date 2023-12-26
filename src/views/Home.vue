@@ -46,6 +46,17 @@ export default {
   },
   data() {
     return {
+      dialogVisible: false,
+      form: {
+        conversationId: '',
+        content: 'text',
+        message: '',
+        datetimeScheduled: null
+      },
+      pickerOptions: {
+        disabledMinutes: this.disabledMinutes
+      },
+
       receivedMessage: '',
       formEditUser: {
         firstName: '',
@@ -173,6 +184,34 @@ export default {
     }
   },
   methods: {
+    disabledSeconds(hour, minute) {
+      if (minute === 0) {
+        return Array.from({ length: 60 }, (_, index) => index).filter((second) => second !== 0)
+      }
+      return []
+    },
+    disabledMinutes() {
+      const allowedMinutes = [0, 15, 30, 45]
+      return Array.from({ length: 60 }, (_, index) => index).filter(
+        (minute) => !allowedMinutes.includes(minute)
+      )
+    },
+    handleScheduleCancel() {
+      // Close the dialog without saving
+      this.dialogVisible = false
+    },
+    handleScheduleSubmit() {
+      console.log('Form submitted:', this.form)
+      const data = {
+        conversation_id: this.form.conversationId,
+        content: this.form.content,
+        message: this.form.message,
+        scheduled: this.form.datetimeScheduled
+      }
+      useMessageStore().saveScheduleMessage(data)
+      // Reset form data if needed
+      this.$refs.conversationForm.resetFields()
+    },
     async handleFocusInFromMiddle() {
       useMessageStore().seenMessages()
     },
@@ -322,7 +361,6 @@ export default {
     },
     cancelDialogEditUser() {
       this.dialogEditUser = false
-
     },
     validateRepeatPassword(rule, value, callback) {
       if (value !== this.formEditUser.password) {
@@ -381,6 +419,11 @@ export default {
                 </el-icon>
               </div>
               <div class="icon" @click="dialogCreateGroup = true">
+                <el-icon>
+                  <chat-square></chat-square>
+                </el-icon>
+              </div>
+              <div class="icon" @click="dialogVisible = true">
                 <el-icon>
                   <chat-square></chat-square>
                 </el-icon>
@@ -606,6 +649,40 @@ export default {
         }}</el-button>
       </span>
     </template>
+  </el-dialog>
+
+  <el-dialog v-model="dialogVisible" title="Create Conversation" width="50%">
+    <el-form :model="form" ref="conversationForm" label-width="120px">
+      <el-form-item label="Conversation ID">
+        <el-select v-model="form.conversationId" placeholder="Select Conversation ID">
+          <el-option
+            v-for="conversation in conversations"
+            :key="conversation._id"
+            :label="conversation.conversation_name"
+            :value="conversation._id"
+          />
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="Message">
+        <el-input v-model="form.message" placeholder="Enter Message"></el-input>
+      </el-form-item>
+
+      <el-form-item label="Time Scheduled">
+        <el-date-picker
+          v-model="form.datetimeScheduled"
+          type="datetime"
+          placeholder="Select Datetime"
+          :disabled-seconds="disabledSeconds"
+          :disabled-minutes="disabledMinutes"
+        ></el-date-picker>
+      </el-form-item>
+    </el-form>
+
+    <div class="dialog-footer">
+      <el-button @click="handleScheduleCancel">Cancel</el-button>
+      <el-button type="primary" @click="handleScheduleSubmit">Create</el-button>
+    </div>
   </el-dialog>
 </template>
 

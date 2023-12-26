@@ -7,9 +7,20 @@ const baseUrl = `${import.meta.env.VITE_API_URL}/api/message`
 export const useMessageStore = defineStore({
   id: 'message',
   state: () => ({
-    messages: []
+    messages: [],
+    scheduleMessage: {},
+    listScheduleMessage: []
   }),
   actions: {
+    async saveScheduleMessage(req) {
+      this.scheduleMessage = { loading: true }
+      try {
+        let data = await fetchWrapper.post(`${import.meta.env.VITE_API_URL}/api/schedule-message`, req)
+        this.scheduleMessage = data.data
+      } catch (error) {
+        this.scheduleMessage = { error }
+      }
+    },
     async getMessageByConversationId(conversation_id) {
       this.messages = { loading: true }
       try {
